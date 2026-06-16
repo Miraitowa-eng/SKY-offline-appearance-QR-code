@@ -123,7 +123,6 @@ astrbot_plugin_sky_o_height_decoder/
 ├── README.md
 ├── LICENSE
 ├── CHANGELOG.md
-├── 上传GitHub教程.md
 └── 使用说明.md
 ```
 
