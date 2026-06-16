@@ -1,0 +1,38 @@
+{
+  "formula_base": {
+    "description": "身高公式常量",
+    "type": "string",
+    "hint": "默认公式：7.6 - 8.3*S - 3*H",
+    "default": "7.6"
+  },
+  "scale_coefficient": {
+    "description": "体型值 S 系数",
+    "type": "string",
+    "hint": "默认公式：7.6 - 8.3*S - 3*H",
+    "default": "8.3"
+  },
+  "height_coefficient": {
+    "description": "身高值 H 系数",
+    "type": "string",
+    "hint": "默认公式：7.6 - 8.3*S - 3*H",
+    "default": "3.0"
+  },
+  "tallest_height_value": {
+    "description": "最高身高对应的身高值 H",
+    "type": "string",
+    "hint": "H 取 2 时按公式得到最高身高编号",
+    "default": "2.0"
+  },
+  "shortest_height_value": {
+    "description": "最矮身高对应的身高值 H",
+    "type": "string",
+    "hint": "H 取 -2 时按公式得到最矮身高编号",
+    "default": "-2.0"
+  },
+  "timezone_offset": {
+    "description": "查询时间时区偏移",
+    "type": "int",
+    "hint": "中国时间填 8",
+    "default": 8
+  }
+}
