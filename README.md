@@ -17,12 +17,6 @@ AstrBot 光遇扫码身高解析插件。用户发送 `https://sky.thatg.co/o=..
 7. 把这个链接发送到已经安装本插件的 AstrBot 聊天窗口。
 8. AstrBot 会自动回复身高参数和装扮 ID。
 
-如果你是插件作者，想把这个插件上传到 GitHub，第一步是先创建 GitHub 账号，然后新建一个空仓库，仓库名建议使用：
-
-```text
-astrbot_plugin_sky_o_height_decoder
-```
-
 ## 功能
 
 - 支持识别 `https://sky.thatg.co/o=...` 链接
