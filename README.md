@@ -1,65 +1,71 @@
-# astrbot_plugin_sky_o_height_decoder
+# 光遇扫码身高解析 AstrBot 插件
 
-AstrBot 光遇扫码身高解析插件。用户发送 `https://sky.thatg.co/o=...` 扫码链接后，插件会离线解码链接中的身高和装扮信息，并返回文字结果。
+离线解析 `sky.thatg.co/o=` 扫码链接中的光遇身高数据，并返回体型值、身高值、当前身高编号、最高/最矮身高编号以及可选装扮信息。
 
-注意：本项目不是一个可以单独运行的聊天机器人。它是 AstrBot 的插件，需要先安装并运行 AstrBot，再把本插件放进 AstrBot 插件目录。用户在 AstrBot 已接入的平台聊天窗口里发送链接，例如 QQ 群、QQ 私聊或其他 AstrBot 支持的平台，AstrBot 会调用本插件并自动回复。
+本插件不请求第三方接口，不会消费好友码，适合直接放入 AstrBot 作为群聊或私聊工具使用。
 
-## 小白先看
+## 功能特性
 
-如果你只是想知道这个插件怎么用，按这几步走：
+- 自动识别消息中的 `sky.thatg.co/o=` 链接。
+- 支持直接发送 `o=` 后面的原始数据。
+- 离线完成 `Base64 -> LZ4 block -> JSON` 解码。
+- 按常见光遇身高编号公式计算当前、最高、最矮身高编号。
+- 可展示扫码数据中包含的发型、斗篷、面具、背饰等装扮 ID。
+- 提供 AstrBot WebUI 配置项，可调整公式参数、时区和装扮信息显示开关。
 
-1. 打开《光遇》。
-2. 点击右上角齿轮，进入设置。
-3. 点击 `更多`。
-4. 往下拉，找到 `线下活动外观二维码`。
-5. 用手机扫码。
-6. 手机会得到一个 `https://sky.thatg.co/o=...` 开头的链接。
-7. 把这个链接发送到已经安装本插件的 AstrBot 聊天窗口。
-8. AstrBot 会自动回复身高参数和装扮 ID。
+## 依赖
 
-## 功能
+无需额外安装依赖。
 
-- 支持识别 `https://sky.thatg.co/o=...` 链接
-- 支持识别消息中的裸 `o=...` 数据
-- 离线解码：`Base64 -> LZ4 block -> JSON`
-- 返回体型值、身高值、当前身高、最高身高、最矮身高、查询时间
-- 返回装扮 ID：裤子、斗篷、发型、面具、项链、鞋子、角饰、脸饰、背饰、头饰
-- 不请求第三方接口，不消费好友码
+插件只使用 Python 标准库和 AstrBot 插件 API，仓库内不需要 `requirements.txt`。
 
-## 安装
+## 安装与配置
 
-将本仓库目录放入 AstrBot 的插件目录，例如：
+### 通过 AstrBot 插件市场安装
+
+在 AstrBot WebUI 的插件市场中搜索本插件并安装，安装完成后重载插件即可使用。
+
+### 手动安装
+
+将本仓库下载或克隆到 AstrBot 的插件目录：
 
 ```text
 AstrBot/data/plugins/astrbot_plugin_sky_o_height_decoder
 ```
 
-重启 AstrBot，或在 AstrBot 插件管理中重载插件。
-
-## 使用
-
-### 获取扫码链接
-
-在游戏里按这个路径获取链接：
+目录结构应保持为：
 
 ```text
-打开光遇 -> 右上角齿轮设置 -> 更多 -> 往下拉 -> 线下活动外观二维码 -> 手机扫码 -> 复制链接
+astrbot_plugin_sky_o_height_decoder/
+├── main.py
+├── metadata.yaml
+├── _conf_schema.json
+└── README.md
 ```
 
-复制到的链接一般长这样：
+放入后在 AstrBot WebUI 中重载插件，或重启 AstrBot。
+
+## 使用方法
+
+发送扫码链接：
 
 ```text
 https://sky.thatg.co/o=8RZ7...
 ```
 
-把这个链接直接发送到已经安装本插件的 AstrBot 聊天窗口即可。
+也可以只发送 `o=` 数据：
 
-也可以发送帮助命令：
+```text
+o=8RZ7...
+```
+
+查看帮助：
 
 ```text
 扫码身高帮助
 o身高帮助
-光遇扫码身高帮助
+光遇身高帮助
+身高帮助
 ```
 
 ## 返回示例
@@ -67,65 +73,54 @@ o身高帮助
 ```text
 光遇扫码身高解析成功
 ==================
-体型值：0.056000002
-身高值：1.9332844
-当前身高：1.335346783
-最高身高：1.135199983
-最矮身高：13.135199983
-查询时间：2026-06-15 15:37:06
+体型值：0.123456
+身高值：-0.654321
+当前身高编号：8.5
+最高身高编号：0.5
+最矮身高编号：12.5
+查询时间：2026-06-23 20:30:00
 ==================
 装扮信息
-裤子：ID 1840544846
-斗篷：ID 2496216296
-发型：ID 1557042466
-面具：ID 3995763436
-项链：ID 3800884691
-鞋子：ID 423244060
-角饰：ID 3886634356
-脸饰：ID 4037336099
-背饰：ID 4248068234
-头饰：ID 460877065
+发型：ID 123
+斗篷：ID 456
 ==================
 ```
 
-## 配置
+这里的“身高编号”采用常见光遇身高编号口径，数值越小越高。
 
-插件提供 `_conf_schema.json`，可在 AstrBot 插件配置中调整：
+## 配置项
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
 | `formula_base` | `7.6` | 身高公式常量 |
-| `scale_coefficient` | `8.3` | 体型值 `S` 系数 |
-| `height_coefficient` | `3.0` | 身高值 `H` 系数 |
-| `tallest_height_value` | `2.0` | 最高身高对应的 `H` 值 |
-| `shortest_height_value` | `-2.0` | 最矮身高对应的 `H` 值 |
-| `timezone_offset` | `8` | 查询时间时区偏移 |
+| `scale_coefficient` | `8.3` | 体型值 `scale` 的系数 |
+| `height_coefficient` | `3.0` | 身高值 `height` 的系数 |
+| `tallest_height_value` | `2.0` | 计算最高身高编号时使用的 `height` 值 |
+| `shortest_height_value` | `-2.0` | 计算最矮身高编号时使用的 `height` 值 |
+| `show_outfit` | `true` | 是否显示装扮信息 |
+| `timezone_offset` | `8` | 查询时间的时区偏移，中国时间填 `8` |
 
-默认身高计算公式：
-
-```text
-当前身高 = 7.6 - 8.3 * scale - 3 * height
-最高身高 = 7.6 - 8.3 * scale - 3 * 2
-最矮身高 = 7.6 - 8.3 * scale - 3 * -2
-```
-
-公式参考：[身高 - 光遇wiki_bwiki_哔哩哔哩](https://wiki.biligame.com/sky/%E8%BA%AB%E9%AB%98)
-
-## 文件结构
+默认计算公式：
 
 ```text
-astrbot_plugin_sky_o_height_decoder/
-├── .github/workflows/check.yml
-├── .gitignore
-├── main.py
-├── metadata.yaml
-├── _conf_schema.json
-├── README.md
-├── LICENSE
-├── CHANGELOG.md
-└── 使用说明.md
+当前身高编号 = 7.6 - 8.3 * scale - 3 * height
+最高身高编号 = 7.6 - 8.3 * scale - 3 * 2
+最矮身高编号 = 7.6 - 8.3 * scale - 3 * -2
 ```
 
-## 说明
+公式参考：<https://wiki.biligame.com/sky/%E8%BA%AB%E9%AB%98>
 
-本插件只解析用户主动发送的扫码链接内容。链接中的数据不是服务端接口返回 JSON，而是 `o=` 参数内嵌的压缩数据。
+## 发布到 AstrBot 插件市场
+
+如果你要把这个仓库提交到 AstrBot 插件市场，请确认：
+
+- 仓库根目录包含 `main.py`、`metadata.yaml`、`_conf_schema.json` 和 `README.md`。
+- `metadata.yaml` 中的 `repo` 指向当前 GitHub 仓库。
+- 不提交 `.git`、`__pycache__`、`.venv` 等无关文件。
+- 插件压缩包大小保持在 AstrBot 插件市场要求范围内。
+
+官方发布入口：<https://plugins.astrbot.app/>
+
+## 隐私说明
+
+本插件只在本地解析用户发送的扫码数据，不上传、不保存扫码链接，也不会调用任何第三方查询接口。

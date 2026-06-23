@@ -1,5 +1,5 @@
 name: astrbot_plugin_sky_o_height_decoder
-desc: 解析 sky.thatg.co/o= 扫码链接中的光遇身高数据
+desc: 离线解析 sky.thatg.co/o= 扫码链接中的光遇身高与装扮信息
 version: v1.0.0
 author: Miraitowa-eng
 repo: https://github.com/Miraitowa-eng/SKY-offline-appearance-QR-code

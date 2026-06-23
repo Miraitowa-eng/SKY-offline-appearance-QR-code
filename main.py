@@ -22,6 +22,8 @@ SKY_O_LINK_RE = re.compile(
     re.IGNORECASE,
 )
 RAW_O_RE = re.compile(r"\bo=([A-Za-z0-9_\-+/=%]{24,})", re.IGNORECASE)
+HELP_PATTERN = r"^\s*[/!！。.]?\s*(?:扫码身高帮助|o身高帮助|光遇扫码身高帮助|光遇身高帮助|身高帮助)\s*$"
+DECODE_PATTERN = r"(?is).*(?:sky\.thatg\.co/o=|\bo=[A-Za-z0-9_\-+/=%]{24,}).*"
 
 DEFAULT_FORMULA_BASE = 7.6
 DEFAULT_SCALE_COEFFICIENT = 8.3
@@ -42,25 +44,25 @@ OUTFIT_LABELS = (
     ("prop", "背饰"),
     ("hat", "头饰"),
 )
-
-
 @register(
     name="astrbot_plugin_sky_o_height_decoder",
-    desc="解析 sky.thatg.co/o= 扫码链接中的光遇身高数据",
+    desc="离线解析 sky.thatg.co/o= 扫码链接中的光遇身高与装扮信息",
     version="1.0.0",
-    author="hp",
+    author="Miraitowa-eng",
 )
 class Main(Star):
     def __init__(self, context: Context, config: Optional["AstrBotConfig"] = None):
         super().__init__(context)
         self.config = config or {}
 
-    @filter.regex(r"^\s*[/!！。.]?\s*(?:扫码身高帮助|o身高帮助|光遇扫码身高帮助)\s*$")
+    @filter.regex(HELP_PATTERN)
     async def help_handler(self, event: AstrMessageEvent):
+        """显示插件使用说明。"""
         yield event.plain_result(self._help_text())
 
-    @filter.regex(r"(?is).*(?:sky\.thatg\.co/o=|\bo=[A-Za-z0-9_\-+/=%]{24,}).*")
+    @filter.regex(DECODE_PATTERN)
     async def decode_handler(self, event: AstrMessageEvent):
+        """解析消息中的 sky.thatg.co/o= 扫码数据。"""
         message = self._get_message_text(event)
         payload = self._extract_payload(message)
         if not payload:
@@ -111,13 +113,87 @@ class Main(Star):
             raise ValueError("解压后不是 UTF-8 文本") from exc
 
         try:
-            payload_obj = json.loads(decoded_text)
+            payload_obj = json.loads(decoded_text, object_pairs_hook=list)
         except json.JSONDecodeError as exc:
             raise ValueError("解压后不是合法 JSON") from exc
 
+        payload_obj = cls._normalize_payload(payload_obj)
         if not isinstance(payload_obj, dict):
             raise ValueError("JSON 根节点不是对象")
         return payload_obj
+
+    @classmethod
+    def _normalize_payload(cls, payload_obj: Any) -> Dict[str, Any]:
+        if isinstance(payload_obj, dict):
+            return payload_obj
+
+        if not cls._is_pairs(payload_obj):
+            raise ValueError("JSON 根节点不是对象")
+
+        result: Dict[str, Any] = {}
+        compact_outfit_keys = {
+            "b": "body",
+            "w": "wing",
+            "ms": "mask",
+            "n": "neck",
+            "f": "feet",
+            "hn": "horn",
+            "fc": "face",
+            "p": "prop",
+            "ht": "hat",
+        }
+        compact_scalar_keys = {
+            "s": "scale",
+            "v": "voice",
+            "a": "attitude",
+            "e": "seed",
+            "r": "refreshversion",
+        }
+
+        for key, value in payload_obj:
+            if key == "h":
+                if cls._is_outfit_array(value):
+                    result["hair"] = cls._outfit_array_to_dict(value)
+                else:
+                    result["height"] = value
+                continue
+
+            if key in compact_outfit_keys and cls._is_outfit_array(value):
+                result[compact_outfit_keys[key]] = cls._outfit_array_to_dict(value)
+                continue
+
+            if key in compact_scalar_keys:
+                result[compact_scalar_keys[key]] = value
+                continue
+
+            normalized_value = cls._pairs_to_dict(value) if cls._is_pairs(value) else value
+            result[key] = normalized_value
+
+        return result
+
+    @classmethod
+    def _pairs_to_dict(cls, value: Any) -> Any:
+        if cls._is_pairs(value):
+            return {str(k): cls._pairs_to_dict(v) for k, v in value}
+        if isinstance(value, list):
+            return [cls._pairs_to_dict(item) for item in value]
+        return value
+
+    @staticmethod
+    def _is_pairs(value: Any) -> bool:
+        return isinstance(value, list) and all(
+            isinstance(item, (list, tuple)) and len(item) == 2 and isinstance(item[0], str)
+            for item in value
+        )
+
+    @staticmethod
+    def _is_outfit_array(value: Any) -> bool:
+        return isinstance(value, list) and bool(value) and not Main._is_pairs(value)
+
+    @staticmethod
+    def _outfit_array_to_dict(value: list[Any]) -> Dict[str, Any]:
+        keys = ("id", "tex", "pat", "mask", "dye")
+        return {key: value[index] for index, key in enumerate(keys) if index < len(value)}
 
     @classmethod
     def _extract_payload_from_text(cls, text: str) -> str:
@@ -222,13 +298,14 @@ class Main(Star):
             "==================",
             f"体型值：{self._fmt_number(scale)}",
             f"身高值：{self._fmt_number(height)}",
-            f"当前身高：{self._fmt_number(current_height)}",
-            f"最高身高：{self._fmt_number(max_height)}",
-            f"最矮身高：{self._fmt_number(min_height)}",
+            f"当前身高编号：{self._fmt_number(current_height)}",
+            f"最高身高编号：{self._fmt_number(max_height)}",
+            f"最矮身高编号：{self._fmt_number(min_height)}",
             f"查询时间：{query_time}",
         ]
 
-        self._append_outfit_lines(lines, decoded)
+        if self._cfg_bool("show_outfit", True):
+            self._append_outfit_lines(lines, decoded)
         lines.append("==================")
         return "\n".join(lines)
 
@@ -263,7 +340,8 @@ class Main(Star):
             "光遇扫码身高解析使用说明\n"
             "==================\n"
             "发送 sky.thatg.co/o= 开头的扫码链接即可解析。\n"
-            "返回：体型值、身高值、当前身高、最高身高、最矮身高、查询时间。\n"
+            "也可以直接发送 o= 后面的数据。\n"
+            "返回：体型值、身高值、当前/最高/最矮身高编号、查询时间，可选装扮信息。\n"
             "==================\n"
             "说明：解析过程完全离线，不会消费好友码。"
         )
@@ -324,6 +402,17 @@ class Main(Star):
             return float(value)
         except Exception:
             return default
+
+    def _cfg_bool(self, key: str, default: bool) -> bool:
+        value = self._cfg(key, default)
+        if isinstance(value, bool):
+            return value
+        text = str(value).strip().lower()
+        if text in {"1", "true", "yes", "on", "是", "开启"}:
+            return True
+        if text in {"0", "false", "no", "off", "否", "关闭"}:
+            return False
+        return default
 
     async def terminate(self):
         logger.info("sky o height decoder plugin unloaded")
