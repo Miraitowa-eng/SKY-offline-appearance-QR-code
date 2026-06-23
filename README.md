@@ -17,7 +17,7 @@
 
 无需额外安装依赖。
 
-插件只使用 Python 标准库和 AstrBot 插件 API，仓库内不需要 `requirements.txt`。
+插件只使用 Python 标准库和 AstrBot 插件 API。
 
 ## 安装与配置
 
@@ -109,17 +109,6 @@ o身高帮助
 ```
 
 公式参考：<https://wiki.biligame.com/sky/%E8%BA%AB%E9%AB%98>
-
-## 发布到 AstrBot 插件市场
-
-如果你要把这个仓库提交到 AstrBot 插件市场，请确认：
-
-- 仓库根目录包含 `main.py`、`metadata.yaml`、`_conf_schema.json` 和 `README.md`。
-- `metadata.yaml` 中的 `repo` 指向当前 GitHub 仓库。
-- 不提交 `.git`、`__pycache__`、`.venv` 等无关文件。
-- 插件压缩包大小保持在 AstrBot 插件市场要求范围内。
-
-官方发布入口：<https://plugins.astrbot.app/>
 
 ## 隐私说明
 
